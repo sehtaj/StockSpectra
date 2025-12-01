@@ -133,7 +133,6 @@ function createStockCard(stock) {
             ${changeSign}${stock.change.toFixed(2)}%
         </div>
         
-        <div class="sparkline-placeholder"></div>
         
         <svg class="view-arrow" viewBox="0 0 24 24" fill="none">
             <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" 
