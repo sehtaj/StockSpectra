@@ -9,6 +9,7 @@
     <title>StockSpectra - Analyze & Compare Stocks with Real-Time Insights</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/hero-glass.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -62,14 +63,112 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1 class="hero-title">Analyze & Compare Stocks with Real-Time Insights</h1>
-                <p class="hero-subtitle">Track prices, compare companies, and visualize data instantly.</p>
-                <div class="hero-cta">
-                    <a href="compare.html" class="hero-cta-btn">Compare Stocks Now</a>
+    <!-- Hero Section - Cinematic Curved Arc -->
+    <section class="hero-cinematic">
+        <!-- Background Elements -->
+        <div class="hero-bg-mesh"></div>
+        <div class="hero-glow-left"></div>
+        <div class="hero-glow-right"></div>
+
+        <div class="hero-cinematic-container">
+            <!-- Centered Hero Text -->
+            <div class="hero-cinematic-text">
+                <h1 class="hero-cinematic-title">Analyze & Compare Stocks with Real-Time Insights</h1>
+                <p class="hero-cinematic-subtitle">Track prices, compare companies, and visualize data instantly.</p>
+            </div>
+
+            <!-- Floating Cards in Curved Arc -->
+            <div class="hero-cards-arc">
+                <!-- Far-Left Card: Market Snapshot (Smallest) -->
+                <div class="arc-card arc-card-left">
+                    <div class="info-card-title">MARKET SNAPSHOT</div>
+                    <div class="info-card-content">
+                        <div class="info-line">Today's Sentiment: <span class="info-value">Neutral ↗</span></div>
+                        <div class="info-line">Market Strength: <span class="info-value">62/100</span></div>
+                        <div class="info-line">Index Heat: <span class="info-value">Mild Volatility</span></div>
+                    </div>
+                </div>
+
+                <!-- Left-Medium Card: Sector Breakdown -->
+                <div class="arc-card arc-card-left-center">
+                    <div class="info-card-title">SECTOR BREAKDOWN</div>
+                    <div class="info-card-content">
+                        <div class="info-line"><span class="info-value">Tech:</span> Leading with strong momentum</div>
+                        <div class="info-line"><span class="info-value">Finance:</span> Stable performance today</div>
+                        <div class="info-line"><span class="info-value">Energy:</span> Slight pullback but steady</div>
+                    </div>
+                </div>
+
+                <!-- Center Card: Main Chart -->
+                <div class="arc-card arc-card-center">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <span class="chart-symbol">AAPL</span>
+                            <span class="chart-price">$214.42</span>
+                            <span class="chart-change positive">▲ 10%</span>
+                        </div>
+                        <div class="chart-timeframe">
+                            <button class="tf-btn active">1D</button>
+                            <button class="tf-btn">1W</button>
+                            <button class="tf-btn">1M</button>
+                            <button class="tf-btn">6M</button>
+                            <button class="tf-btn">1Y</button>
+                        </div>
+                    </div>
+                    <svg class="main-chart" viewBox="0 0 400 180" preserveAspectRatio="none">
+                        <!-- Chart Grid -->
+                        <line x1="0" y1="45" x2="400" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+                        <line x1="0" y1="90" x2="400" y2="90" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+                        <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+
+                        <!-- Candlesticks -->
+                        <rect x="20" y="80" width="8" height="40" fill="rgba(35,243,155,0.3)" rx="1" />
+                        <rect x="40" y="70" width="8" height="50" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="60" y="90" width="8" height="30" fill="rgba(35,243,155,0.3)" rx="1" />
+                        <rect x="80" y="60" width="8" height="60" fill="rgba(35,243,155,0.5)" rx="1" />
+                        <rect x="100" y="75" width="8" height="45" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="120" y="85" width="8" height="35" fill="rgba(35,243,155,0.3)" rx="1" />
+                        <rect x="140" y="70" width="8" height="50" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="160" y="50" width="8" height="70" fill="rgba(35,243,155,0.6)" rx="1" />
+                        <rect x="180" y="65" width="8" height="55" fill="rgba(35,243,155,0.5)" rx="1" />
+                        <rect x="200" y="80" width="8" height="40" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="220" y="90" width="8" height="30" fill="rgba(35,243,155,0.3)" rx="1" />
+                        <rect x="240" y="75" width="8" height="45" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="260" y="60" width="8" height="60" fill="rgba(35,243,155,0.5)" rx="1" />
+                        <rect x="280" y="70" width="8" height="50" fill="rgba(35,243,155,0.4)" rx="1" />
+                        <rect x="300" y="55" width="8" height="65" fill="rgba(35,243,155,0.6)" rx="1" />
+                        <rect x="320" y="45" width="8" height="75" fill="rgba(35,243,155,0.7)" rx="1" />
+                        <rect x="340" y="40" width="8" height="80" fill="rgba(35,243,155,0.8)" rx="1" />
+                        <rect x="360" y="35" width="8" height="85" fill="rgba(35,243,155,0.9)" rx="1" />
+
+
+                    </svg>
+                    <div class="chart-labels">
+                        <span>9:30</span>
+                        <span>11:00</span>
+                        <span>13:00</span>
+                        <span>15:00</span>
+                    </div>
+                </div>
+
+                <!-- Right-Medium Card: Price Action Summary -->
+                <div class="arc-card arc-card-right-top">
+                    <div class="info-card-title">PRICE ACTION SUMMARY</div>
+                    <div class="info-card-content">
+                        <div class="info-line">Trend Bias: <span class="info-value">Bullish in short-term</span></div>
+                        <div class="info-line">Momentum Score: <span class="info-value">+7.4</span></div>
+                        <div class="info-line">Volatility: <span class="info-value">Controlled</span></div>
+                    </div>
+                </div>
+
+                <!-- Far-Right Card: Algo Signals (Smallest) -->
+                <div class="arc-card arc-card-right-far">
+                    <div class="info-card-title">ALGO SIGNALS</div>
+                    <div class="info-card-content">
+                        <div class="info-line">Signal Mode: <span class="info-value">Monitoring</span></div>
+                        <div class="info-line">Confidence: <span class="info-value">81%</span></div>
+                        <div class="info-line">Data Streams Active: <span class="info-value">24</span></div>
+                    </div>
                 </div>
             </div>
         </div>
