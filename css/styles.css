@@ -70,6 +70,7 @@ body {
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: var(--spacing-xl);
+    position: relative;
 }
 
 /* Brand Name - Left Column */
@@ -77,6 +78,19 @@ body {
     justify-self: start;
     display: flex;
     align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    /* Simple color */
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    transition: color 0.2s ease;
+}
+
+.brand-name:hover {
+    color: var(--glow-bright);
+    /* Highlight on hover */
 }
 
 .brand-logo {
@@ -85,6 +99,17 @@ body {
 
 .brand-logo:hover {
     opacity: 0.9;
+}
+
+/* User Avatar - Top Right */
+.navbar-user {
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-lg);
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    z-index: 10;
 }
 
 /* Floating Transparent Pill - Center Column */
