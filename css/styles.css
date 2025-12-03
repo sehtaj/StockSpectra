@@ -93,14 +93,6 @@ body {
     /* Highlight on hover */
 }
 
-.brand-logo {
-    transition: opacity 0.2s ease;
-}
-
-.brand-logo:hover {
-    opacity: 0.9;
-}
-
 /* User Avatar - Top Right */
 .navbar-user {
     position: absolute;
