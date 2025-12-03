@@ -290,16 +290,6 @@
     transform: translateX(4px);
 }
 
-/* No Results */
-.no-results {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    text-align: center;
-}
-
 /* Pagination Section */
 .pagination-section {
     padding: 32px 0 48px;
