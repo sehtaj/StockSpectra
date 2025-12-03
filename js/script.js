@@ -87,6 +87,20 @@ function initNavbar() {
 
 
 // ===================================
+// MOBILE MENU FUNCTIONALITY
+// ===================================
+function initMobileMenu() {
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const navPill = document.querySelector('.navbar-pill');
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            navPill.classList.toggle('active');
+        });
+    }
+}
+
+// ===================================
 // SEARCH FUNCTIONALITY
 // ===================================
 function initSearch() {
@@ -186,6 +200,114 @@ function handleResize() {
 }
 
 // ===================================
+// REAL-TIME DATA LOADING (FINNHUB API)
+// ===================================
+async function loadTrendingStocks() {
+    // Check if API is available
+    if (typeof stockAPI === 'undefined') {
+        console.warn('⚠️ API not loaded, using static data');
+        return;
+    }
+
+    const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX'];
+
+    try {
+        console.log('🔄 Loading trending stocks from Finnhub...');
+        const quotes = await stockAPI.getMultipleQuotes(trendingSymbols);
+
+        // Update each stock card with real data
+        const stockCards = document.querySelectorAll('.trending-grid .stock-card');
+        quotes.forEach((quote, index) => {
+            if (index < stockCards.length) {
+                updateStockCard(stockCards[index], quote);
+            }
+        });
+
+        console.log('✅ Trending stocks loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading trending stocks:', error);
+    }
+}
+
+async function loadHeroStockData() {
+    // Check if API is available
+    if (typeof stockAPI === 'undefined') {
+        console.warn('⚠️ API not loaded, using static data');
+        return;
+    }
+
+    try {
+        console.log('🔄 Loading AAPL data for hero card...');
+        const quote = await stockAPI.getStockQuote('AAPL');
+
+        // Update hero card AAPL data
+        const heroPrice = document.querySelector('.arc-card-center .chart-price');
+        const heroChange = document.querySelector('.arc-card-center .chart-change');
+
+        if (heroPrice && quote) {
+            heroPrice.textContent = `$${quote.price.toFixed(2)}`;
+        }
+
+        if (heroChange && quote) {
+            const changeSymbol = quote.change >= 0 ? '▲' : '▼';
+            heroChange.textContent = `${changeSymbol} ${Math.abs(quote.changePercent).toFixed(2)}%`;
+            heroChange.className = `chart-change ${quote.change >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        console.log('✅ Hero AAPL data loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading hero stock data:', error);
+    }
+}
+
+async function loadWatchlistData() {
+    // Check if API is available
+    if (typeof stockAPI === 'undefined') {
+        return;
+    }
+
+    const watchlistSymbols = ['AAPL', 'GOOGL', 'NVDA', 'TSLA', 'MSFT'];
+
+    try {
+        console.log('🔄 Loading watchlist data...');
+        const quotes = await stockAPI.getMultipleQuotes(watchlistSymbols);
+
+        // Update each watchlist card
+        const watchlistCards = document.querySelectorAll('.watchlist-grid .watchlist-card');
+        quotes.forEach((quote, index) => {
+            if (index < watchlistCards.length) {
+                updateStockCard(watchlistCards[index], quote);
+            }
+        });
+
+        console.log('✅ Watchlist data loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading watchlist:', error);
+    }
+}
+
+function updateStockCard(card, quote) {
+    const priceEl = card.querySelector('.stock-price');
+    const changeEl = card.querySelector('.stock-change');
+
+    if (priceEl) {
+        priceEl.textContent = `$${quote.price.toFixed(2)}`;
+    }
+
+    if (changeEl) {
+        const sign = quote.change >= 0 ? '+' : '';
+        changeEl.textContent = `${sign}${quote.changePercent.toFixed(2)}%`;
+        changeEl.className = `stock-change ${quote.change >= 0 ? 'positive' : 'negative'}`;
+    }
+
+    // Update arrow icon if it exists
+    const arrowIcon = card.querySelector('.arrow-up, .arrow-down');
+    if (arrowIcon) {
+        arrowIcon.className = quote.change >= 0 ? 'arrow-up' : 'arrow-down';
+    }
+}
+
+// ===================================
 // INITIALIZE ALL FUNCTIONALITY
 // ===================================
 function init() {
@@ -197,8 +319,20 @@ function init() {
     initTableRows();
     initSmoothScroll();
 
+    // Load real-time data from Finnhub
+    loadTrendingStocks();
+    loadHeroStockData();
+    loadWatchlistData();
+
     // Add resize listener for sparklines
     window.addEventListener('resize', handleResize);
+
+    // Refresh data every 5 minutes
+    setInterval(() => {
+        loadTrendingStocks();
+        loadHeroStockData();
+        loadWatchlistData();
+    }, 5 * 60 * 1000);
 }
 
 // Run initialization when DOM is ready
