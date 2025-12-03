@@ -699,10 +699,6 @@
     .arc-card-right-top {
         right: 5%;
     }
-
-    .arc-card-right-bottom {
-        right: 8%;
-    }
 }
 
 @media (max-width: 1024px) {
@@ -710,8 +706,7 @@
         height: 400px;
     }
 
-    .arc-card-right-top,
-    .arc-card-right-bottom {
+    .arc-card-right-top {
         display: none;
     }
 
@@ -742,11 +737,6 @@
         font-size: 18px;
     }
 
-    .hero-cinematic-btn {
-        padding: 16px 32px;
-        font-size: 15px;
-    }
-
     .hero-cards-arc {
         height: 300px;
     }
@@ -775,11 +765,6 @@
 
     .hero-cinematic-subtitle {
         font-size: 16px;
-    }
-
-    .hero-cinematic-btn {
-        width: 100%;
-        justify-content: center;
     }
 
     .hero-cards-arc {
