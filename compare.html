@@ -141,6 +141,10 @@
                             <div class="stock-symbol" id="symbolA">AAPL</div>
                             <div class="stock-name" id="nameA">Apple Inc.</div>
                         </div>
+                        <svg class="arrow-up" width="16" height="16" viewBox="0 0 16 16" fill="none" id="arrowA">
+                            <path d="M8 12V4M8 4L4 8M8 4L12 8" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
                     </div>
                     <div class="stock-price" id="priceA">$178.42</div>
                     <div class="stock-change positive" id="changeA">+2.34%</div>
@@ -153,6 +157,10 @@
                             <div class="stock-symbol" id="symbolB">MSFT</div>
                             <div class="stock-name" id="nameB">Microsoft Corporation</div>
                         </div>
+                        <svg class="arrow-down" width="16" height="16" viewBox="0 0 16 16" fill="none" id="arrowB">
+                            <path d="M8 4V12M8 12L12 8M8 12L4 8" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
                     </div>
                     <div class="stock-price" id="priceB">$374.58</div>
                     <div class="stock-change negative" id="changeB">-0.89%</div>
@@ -242,6 +250,9 @@
         </div>
     </footer>
 
+    <!-- API Integration -->
+    <script src="js/api-config.js"></script>
+    <script src="js/api-service.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/compare.js"></script>
 </body>
