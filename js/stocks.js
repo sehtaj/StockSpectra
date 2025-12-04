@@ -1,5 +1,5 @@
-// Stocks List Page JavaScript
-// Premium fintech stock browsing with search & filter
+// Stocks Wheel Picker Page JavaScript
+// Subtle wheel with 5ms smoothing and snap-to-center
 
 // Mock stock data
 const allStocks = [
@@ -26,36 +26,59 @@ const allStocks = [
     { symbol: 'KO', name: 'The Coca-Cola Company', price: 58.92, change: 0.67, sector: 'consumer' },
     { symbol: 'PEP', name: 'PepsiCo, Inc.', price: 172.45, change: -0.23, sector: 'consumer' },
     { symbol: 'COST', name: 'Costco Wholesale Corp.', price: 612.34, change: 1.45, sector: 'retail' },
-    { symbol: 'NKE', name: 'Nike, Inc.', price: 98.76, change: -1.34, sector: 'consumer' }
+    { symbol: 'NKE', name: 'Nike, Inc.', price: 98.76, change: -1.34, sector: 'consumer' },
+    { symbol: 'ADBE', name: 'Adobe Inc.', price: 567.89, change: 1.87, sector: 'technology' },
+    { symbol: 'CRM', name: 'Salesforce Inc.', price: 234.56, change: -0.76, sector: 'technology' },
+    { symbol: 'ORCL', name: 'Oracle Corporation', price: 98.34, change: 0.92, sector: 'technology' },
+    { symbol: 'CSCO', name: 'Cisco Systems Inc.', price: 51.23, change: -1.12, sector: 'technology' },
+    { symbol: 'IBM', name: 'IBM Corporation', price: 145.67, change: 0.45, sector: 'technology' },
+    { symbol: 'QCOM', name: 'Qualcomm Inc.', price: 123.45, change: 2.34, sector: 'technology' }
 ];
 
-// Pagination settings
-const ITEMS_PER_PAGE = 12;
-let currentPage = 1;
 let filteredStocks = [...allStocks];
 
 // DOM elements
 const searchInput = document.getElementById('searchInput');
 const sectorFilter = document.getElementById('sectorFilter');
-const stocksList = document.getElementById('stocksList');
+const wheelContainer = document.getElementById('wheelContainer');
+const stocksWheel = document.getElementById('stocksWheel');
 const noResults = document.getElementById('noResults');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const currentPageSpan = document.getElementById('currentPage');
-const totalPagesSpan = document.getElementById('totalPages');
+
+// Wheel state
+let isScrolling = false;
+let scrollTimeout;
+let smoothingInterval;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    renderStocks();
+    renderWheel();
     setupEventListeners();
+    startSmoothingLoop();
 });
 
 // Setup event listeners
 function setupEventListeners() {
     searchInput.addEventListener('input', handleSearch);
     sectorFilter.addEventListener('change', handleFilter);
-    prevBtn.addEventListener('click', () => changePage(-1));
-    nextBtn.addEventListener('click', () => changePage(1));
+
+    // Detect scroll start/stop for snap behavior
+    wheelContainer.addEventListener('scroll', () => {
+        isScrolling = true;
+        clearTimeout(scrollTimeout);
+
+        // Detect scroll stop
+        scrollTimeout = setTimeout(() => {
+            isScrolling = false;
+            snapToCenter();
+        }, 150);
+    });
+}
+
+// 5ms smoothing loop for fluid active detection
+function startSmoothingLoop() {
+    smoothingInterval = setInterval(() => {
+        updateActiveItem();
+    }, 5);
 }
 
 // Handle search
@@ -70,101 +93,163 @@ function handleSearch() {
         return matchesSearch && matchesSector;
     });
 
-    currentPage = 1;
-    renderStocks();
+    renderWheel();
 }
 
 // Handle filter
 function handleFilter() {
-    handleSearch(); // Reuse search logic
+    handleSearch();
 }
 
-// Render stocks
-function renderStocks() {
-    const totalPages = Math.ceil(filteredStocks.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const stocksToShow = filteredStocks.slice(startIndex, endIndex);
-
-    // Update pagination info
-    currentPageSpan.textContent = totalPages === 0 ? 0 : currentPage;
-    totalPagesSpan.textContent = totalPages;
-
-    // Update pagination buttons
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-
+// Render wheel
+function renderWheel() {
     // Show/hide no results
     if (filteredStocks.length === 0) {
-        stocksList.style.display = 'none';
+        stocksWheel.style.display = 'none';
         noResults.style.display = 'flex';
         return;
     } else {
-        stocksList.style.display = 'grid';
+        stocksWheel.style.display = 'flex';
         noResults.style.display = 'none';
     }
 
-    // Render stock cards
-    stocksList.innerHTML = '';
-    stocksToShow.forEach(stock => {
-        const card = createStockCard(stock);
-        stocksList.appendChild(card);
+    // Render stock items
+    stocksWheel.innerHTML = '';
+    filteredStocks.forEach(stock => {
+        const item = createWheelItem(stock);
+        stocksWheel.appendChild(item);
     });
 }
 
-// Create stock card
-function createStockCard(stock) {
-    const card = document.createElement('a');
-    card.href = `stock-details.html?ticker=${stock.symbol}`;
-    card.className = 'stock-list-card';
+// Create wheel item
+function createWheelItem(stock) {
+    const item = document.createElement('a');
+    item.href = `stock-details.html?ticker=${stock.symbol}`;
+    item.className = 'wheel-item';
+    item.dataset.symbol = stock.symbol;
 
     const changeClass = stock.change >= 0 ? 'positive' : 'negative';
     const changeSign = stock.change >= 0 ? '+' : '';
 
-    card.innerHTML = `
-        <div class="stock-info">
-            <div class="stock-symbol-main">${stock.symbol}</div>
-            <div class="stock-company-name">${stock.name}</div>
+    item.innerHTML = `
+        <div class="wheel-item-left">
+            <div class="wheel-symbol">${stock.symbol}</div>
+            <div class="wheel-company">${stock.name}</div>
         </div>
         
-        <div class="stock-price-main">$${stock.price.toFixed(2)}</div>
-        
-        <div class="stock-change-main ${changeClass}">
-            ${changeSign}${stock.change.toFixed(2)}%
+        <div class="wheel-item-right">
+            <div class="wheel-price">$${stock.price.toFixed(2)}</div>
+            <div class="wheel-change ${changeClass}">
+                ${changeSign}${stock.change.toFixed(2)}%
+            </div>
+            <div class="wheel-sparkline"></div>
         </div>
-        
-        
-        <svg class="view-arrow" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" 
-                  stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
     `;
 
-    return card;
+    // Only allow click on active items
+    item.addEventListener('click', (e) => {
+        if (!item.classList.contains('active')) {
+            e.preventDefault();
+            scrollToItem(item);
+        }
+    });
+
+    return item;
 }
 
-// Change page
-function changePage(direction) {
-    const totalPages = Math.ceil(filteredStocks.length / ITEMS_PER_PAGE);
-    const newPage = currentPage + direction;
+// Update active item (called every 5ms)
+function updateActiveItem() {
+    const items = stocksWheel.querySelectorAll('.wheel-item');
+    if (items.length === 0) return;
 
-    if (newPage >= 1 && newPage <= totalPages) {
-        currentPage = newPage;
-        renderStocks();
+    const wheelRect = wheelContainer.getBoundingClientRect();
+    const centerY = wheelRect.top + wheelRect.height / 2;
 
-        // Smooth scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    let closestItem = null;
+    let closestDistance = Infinity;
+
+    items.forEach(item => {
+        const itemRect = item.getBoundingClientRect();
+        const itemCenterY = itemRect.top + itemRect.height / 2;
+        const distance = Math.abs(centerY - itemCenterY);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestItem = item;
+        }
+    });
+
+    // Remove active class from all items
+    items.forEach(item => item.classList.remove('active'));
+
+    // Add active class to closest item
+    if (closestItem) {
+        closestItem.classList.add('active');
     }
+}
+
+// Snap to center when scrolling stops
+function snapToCenter() {
+    const activeItem = stocksWheel.querySelector('.wheel-item.active');
+    if (!activeItem) return;
+
+    const wheelRect = wheelContainer.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+
+    const wheelCenter = wheelRect.height / 2;
+    const itemCenter = itemRect.height / 2;
+    const scrollOffset = itemRect.top - wheelRect.top - wheelCenter + itemCenter;
+
+    // Smooth snap with spring-like easing
+    wheelContainer.scrollBy({
+        top: scrollOffset,
+        behavior: 'smooth'
+    });
+}
+
+// Scroll specific item to center
+function scrollToItem(item) {
+    const wheelRect = wheelContainer.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+
+    const wheelCenter = wheelRect.height / 2;
+    const itemCenter = itemRect.height / 2;
+    const scrollOffset = itemRect.top - wheelRect.top - wheelCenter + itemCenter;
+
+    wheelContainer.scrollBy({
+        top: scrollOffset,
+        behavior: 'smooth'
+    });
 }
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
-        changePage(-1);
-    } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
-        changePage(1);
+    const activeItem = stocksWheel.querySelector('.wheel-item.active');
+    if (!activeItem) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextItem = activeItem.nextElementSibling;
+        if (nextItem && nextItem.classList.contains('wheel-item')) {
+            scrollToItem(nextItem);
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevItem = activeItem.previousElementSibling;
+        if (prevItem && prevItem.classList.contains('wheel-item')) {
+            scrollToItem(prevItem);
+        }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeItem.href) {
+            window.location.href = activeItem.href;
+        }
+    }
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (smoothingInterval) {
+        clearInterval(smoothingInterval);
     }
 });
