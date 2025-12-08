@@ -222,7 +222,11 @@ async function loadTrendingStocks() {
         const stockCards = document.querySelectorAll('.trending-grid .stock-card');
         quotes.forEach((quote, index) => {
             if (index < stockCards.length) {
-                updateStockCard(stockCards[index], quote);
+                try {
+                    updateStockCard(stockCards[index], quote);
+                } catch (err) {
+                    console.error(`Error updating card for ${quote.symbol}:`, err);
+                }
             }
         });
 
@@ -293,11 +297,11 @@ function updateStockCard(card, quote) {
     const priceEl = card.querySelector('.stock-price');
     const changeEl = card.querySelector('.stock-change');
 
-    if (priceEl) {
+    if (priceEl && quote.price !== undefined && quote.price !== null) {
         priceEl.textContent = `$${quote.price.toFixed(2)}`;
     }
 
-    if (changeEl) {
+    if (changeEl && quote.changePercent !== undefined && quote.changePercent !== null) {
         const sign = quote.change >= 0 ? '+' : '';
         changeEl.textContent = `${sign}${quote.changePercent.toFixed(2)}%`;
         changeEl.className = `stock-change ${quote.change >= 0 ? 'positive' : 'negative'}`;
@@ -306,7 +310,21 @@ function updateStockCard(card, quote) {
     // Update arrow icon if it exists
     const arrowIcon = card.querySelector('.arrow-up, .arrow-down');
     if (arrowIcon) {
-        arrowIcon.className = quote.change >= 0 ? 'arrow-up' : 'arrow-down';
+        const isPositive = quote.change >= 0;
+        const newClass = isPositive ? 'arrow-up' : 'arrow-down';
+
+        // Use setAttribute for SVG class to avoid read-only errors
+        arrowIcon.setAttribute('class', newClass);
+
+        // Update arrow path to ensure correct direction
+        const path = arrowIcon.querySelector('path');
+        if (path) {
+            // Up arrow path vs Down arrow path
+            const d = isPositive
+                ? "M8 12V4M8 4L4 8M8 4L12 8"
+                : "M8 4V12M8 12L12 8M8 12L4 8";
+            path.setAttribute('d', d);
+        }
     }
 }
 
