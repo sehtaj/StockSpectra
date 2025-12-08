@@ -19,7 +19,7 @@ const featuredArticle = {
     category: 'Markets',
     source: 'Bloomberg',
     time: '2 hours ago',
-    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&h=600&fit=crop'
+    image: 'assets/news/featured_ai_tech.png'
 };
 
 const topStories = [
@@ -29,7 +29,7 @@ const topStories = [
         source: 'Reuters',
         time: '1 hour ago',
         category: 'Economy',
-        thumbnail: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/federal_reserve_economy.png'
     },
     {
         title: 'NVIDIA Announces Next-Generation AI Chips',
@@ -37,7 +37,7 @@ const topStories = [
         source: 'TechCrunch',
         time: '3 hours ago',
         category: 'Tech',
-        thumbnail: 'https://images.unsplash.com/photo-1591238371159-c0c05e2e8a9f?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/nvidia_ai_chips.png'
     },
     {
         title: 'Oil Prices Surge on Middle East Supply Concerns',
@@ -45,7 +45,7 @@ const topStories = [
         source: 'WSJ',
         time: '4 hours ago',
         category: 'Markets',
-        thumbnail: 'https://images.unsplash.com/photo-1541844053589-346841d0b34c?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/oil_prices_markets.png'
     },
     {
         title: 'Tesla Reports Record Q4 Deliveries',
@@ -53,7 +53,7 @@ const topStories = [
         source: 'CNBC',
         time: '5 hours ago',
         category: 'Earnings',
-        thumbnail: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/tesla_deliveries_earnings.png'
     },
     {
         title: 'Bitcoin Breaks $50K as Institutional Adoption Grows',
@@ -61,7 +61,7 @@ const topStories = [
         source: 'CoinDesk',
         time: '6 hours ago',
         category: 'Crypto',
-        thumbnail: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/bitcoin_crypto_50k.png'
     },
     {
         title: 'Amazon Expands Same-Day Delivery to 50 New Cities',
@@ -69,7 +69,7 @@ const topStories = [
         source: 'Financial Times',
         time: '7 hours ago',
         category: 'Stocks',
-        thumbnail: 'https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=200&h=150&fit=crop'
+        thumbnail: 'assets/news/amazon_delivery_logistics.png'
     }
 ];
 
@@ -77,27 +77,27 @@ const mosaicStories = [
     {
         title: 'Global Markets React to Inflation Data',
         category: 'Economy',
-        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop'
+        image: 'assets/news/inflation_global_markets.png'
     },
     {
         title: 'Apple Vision Pro Sales Exceed Expectations',
         category: 'Tech',
-        image: 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?w=400&h=300&fit=crop'
+        image: 'assets/news/apple_vision_pro.png'
     },
     {
         title: 'Renewable Energy Stocks Surge',
         category: 'Markets',
-        image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop'
+        image: 'assets/news/renewable_energy_stocks.png'
     },
     {
         title: 'Banking Sector Shows Strong Q4 Performance',
         category: 'Earnings',
-        image: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=800&h=400&fit=crop'
+        image: 'assets/news/banking_sector_earnings.png'
     },
     {
         title: 'Semiconductor Shortage Easing',
         category: 'Tech',
-        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop'
+        image: 'assets/news/semiconductor_chip_shortage.png'
     }
 ];
 
@@ -178,7 +178,7 @@ function renderFeaturedArticle() {
     const container = document.getElementById('featuredArticle');
 
     container.innerHTML = `
-        <div class="hero-image" style="background: linear-gradient(135deg, #1a1d23 0%, #2d3139 100%);"></div>
+        <div class="hero-image" style="background-image: url('${featuredArticle.image}'); background-size: cover; background-position: center; transform: scale(1.25);"></div>
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <span class="hero-category">${featuredArticle.category}</span>
@@ -210,7 +210,7 @@ function renderTopStories() {
                     <span>${story.category}</span>
                 </div>
             </div>
-            <div class="story-thumbnail" style="background: linear-gradient(135deg, #1a1d23 0%, #2d3139 100%);"></div>
+            <div class="story-thumbnail" style="background-image: url('${story.thumbnail}'); background-size: cover; background-position: center;"></div>
         </a>
     `).join('');
 }
@@ -221,7 +221,7 @@ function renderArticleMosaic() {
 
     container.innerHTML = mosaicStories.map(story => `
         <a href="#" class="mosaic-article">
-            <div class="mosaic-image" style="background: linear-gradient(135deg, #1a1d23 0%, #2d3139 100%);"></div>
+            <div class="mosaic-image" style="background-image: url('${story.image}'); background-size: cover; background-position: center;"></div>
             <div class="mosaic-overlay"></div>
             <div class="mosaic-content">
                 <span class="mosaic-category">${story.category}</span>
