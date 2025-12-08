@@ -1,86 +1,238 @@
 // Markets Dashboard JavaScript
 // Heatmap-first design with Canvas sparklines
 
-// Mock Data
-const heatmapData = [
-    { symbol: 'AAPL', price: 178.42, change: 2.34, marketCap: 2800000000000, size: 'xl' },
-    { symbol: 'MSFT', price: 374.58, change: -0.89, marketCap: 2900000000000, size: 'xl' },
-    { symbol: 'GOOGL', price: 139.67, change: 1.45, marketCap: 1700000000000, size: 'lg' },
-    { symbol: 'AMZN', price: 151.94, change: 2.78, marketCap: 1600000000000, size: 'lg' },
-    { symbol: 'NVDA', price: 495.22, change: 3.12, marketCap: 1200000000000, size: 'lg' },
-    { symbol: 'TSLA', price: 242.84, change: 5.67, marketCap: 771000000000, size: 'md' },
-    { symbol: 'META', price: 338.12, change: -1.23, marketCap: 858000000000, size: 'md' },
-    { symbol: 'NFLX', price: 487.33, change: 4.21, marketCap: 210000000000, size: 'md' },
-    { symbol: 'AMD', price: 118.67, change: 2.94, marketCap: 192000000000, size: 'md' },
-    { symbol: 'INTC', price: 42.15, change: -3.45, marketCap: 172000000000, size: 'md' },
-    { symbol: 'DIS', price: 91.23, change: -2.87, marketCap: 166000000000, size: 'md' },
-    { symbol: 'JPM', price: 158.42, change: 0.87, marketCap: 456000000000, size: 'md' }
-];
+// Stock symbols for different sections
+const heatmapSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'JPM'];
+const moverSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'JPM', 'BAC', 'V', 'WMT', 'JNJ', 'PG', 'KO', 'PEP', 'COST'];
 
-const indicesData = [
-    { name: 'S&P 500', value: 4615.32, change: 0.68, spark: [4580, 4590, 4585, 4600, 4610, 4615] },
-    { name: 'NASDAQ', value: 14350.65, change: 1.05, spark: [14200, 14250, 14280, 14300, 14330, 14350] },
-    { name: 'DOW', value: 35870.95, change: 0.42, spark: [35800, 35820, 35810, 35850, 35860, 35870] },
-    { name: 'Russell 2000', value: 1975.28, change: 1.29, spark: [1950, 1955, 1960, 1965, 1970, 1975] }
-];
-
-const sectorsData = [
-    { name: 'Technology', change: 2.3, progress: 85 },
-    { name: 'Finance', change: -0.8, progress: 40 },
-    { name: 'Healthcare', change: 1.4, progress: 70 },
-    { name: 'Energy', change: -1.1, progress: 35 },
-    { name: 'Consumer', change: 0.5, progress: 55 },
-    { name: 'Industrials', change: 1.8, progress: 75 },
-    { name: 'Materials', change: -0.3, progress: 48 },
-    { name: 'Utilities', change: 0.2, progress: 52 }
-];
-
-const moversData = {
-    gainers: [
-        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 495.22, change: 8.45, volume: '42.5M', spark: [460, 470, 475, 480, 490, 495] },
-        { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] },
-        { symbol: 'NFLX', name: 'Netflix, Inc.', price: 487.33, change: 4.21, volume: '3.5M', spark: [468, 472, 475, 480, 485, 487] },
-        { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
-        { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] }
-    ],
-    losers: [
-        { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] },
-        { symbol: 'DIS', name: 'The Walt Disney Company', price: 91.23, change: -2.87, volume: '8.9M', spark: [94, 93, 92, 92, 91, 91] },
-        { symbol: 'META', name: 'Meta Platforms, Inc.', price: 338.12, change: -1.23, volume: '18.3M', spark: [343, 342, 340, 339, 340, 338] },
-        { symbol: 'MSFT', name: 'Microsoft Corporation', price: 374.58, change: -0.89, volume: '28.1M', spark: [378, 376, 377, 375, 376, 374] },
-        { symbol: 'BAC', name: 'Bank of America Corp.', price: 34.56, change: -0.45, volume: '42.1M', spark: [35, 34, 34, 35, 34, 34] }
-    ],
-    active: [
-        { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] },
-        { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
-        { symbol: 'AAPL', name: 'Apple Inc.', price: 178.42, change: 2.34, volume: '52.3M', spark: [174, 171, 175, 173, 176, 178] },
-        { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] },
-        { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] }
-    ],
-    high52: [
-        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 495.22, change: 3.12, volume: '42.5M', spark: [480, 482, 485, 488, 492, 495] },
-        { symbol: 'NFLX', name: 'Netflix, Inc.', price: 487.33, change: 4.21, volume: '3.5M', spark: [468, 472, 475, 480, 485, 487] },
-        { symbol: 'MSFT', name: 'Microsoft Corporation', price: 374.58, change: -0.89, volume: '28.1M', spark: [378, 376, 377, 375, 376, 374] },
-        { symbol: 'META', name: 'Meta Platforms, Inc.', price: 338.12, change: -1.23, volume: '18.3M', spark: [343, 342, 340, 339, 340, 338] },
-        { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] }
-    ],
-    low52: [
-        { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] },
-        { symbol: 'DIS', name: 'The Walt Disney Company', price: 91.23, change: -2.87, volume: '8.9M', spark: [94, 93, 92, 92, 91, 91] },
-        { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
-        { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 139.67, change: 1.45, volume: '31.2M', spark: [137, 138, 137, 139, 138, 140] },
-        { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] }
-    ]
+// Data storage (will be populated from API)
+let heatmapData = [];
+let indicesData = [];
+let sectorsData = [];
+let moversData = {
+    gainers: [],
+    losers: [],
+    active: [],
+    high52: [],
+    low52: []
 };
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadMarketData();
+    setupMoversTabs();
+
+    // Auto-refresh every 5 minutes
+    setInterval(async () => {
+        console.log('🔄 Auto-refreshing market data...');
+        await loadMarketData();
+    }, 5 * 60 * 1000);
+});
+
+// Load all market data
+async function loadMarketData() {
+    if (typeof stockAPI === 'undefined') {
+        console.warn('⚠️ API not loaded, using fallback data');
+        loadFallbackData();
+        renderAll();
+        return;
+    }
+
+    try {
+        console.log('🔄 Loading real-time market data...');
+
+        // Load heatmap and movers data in parallel
+        await Promise.all([
+            loadHeatmapData(),
+            loadMoversData()
+        ]);
+
+        // Load indices and sectors (using fallback for now as free API doesn't provide this)
+        loadIndicesData();
+        loadSectorsData();
+
+        // Render all sections
+        renderAll();
+
+        console.log('✅ Market data loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading market data:', error);
+        loadFallbackData();
+        renderAll();
+    }
+}
+
+// Load heatmap data
+async function loadHeatmapData() {
+    const quotes = await stockAPI.getMultipleQuotes(heatmapSymbols);
+
+    // Assign sizes based on market position (simplified)
+    const sizes = ['xl', 'xl', 'lg', 'lg', 'lg', 'md', 'md', 'md', 'md', 'md', 'md', 'md'];
+
+    heatmapData = quotes.map((quote, index) => ({
+        symbol: quote.symbol,
+        price: quote.price,
+        change: quote.changePercent,
+        marketCap: 0, // Not available in free API
+        size: sizes[index] || 'md'
+    }));
+}
+
+// Load movers data
+async function loadMoversData() {
+    const quotes = await stockAPI.getMultipleQuotes(moverSymbols);
+
+    // Sort by change percentage
+    const sortedByChange = [...quotes].sort((a, b) => b.changePercent - a.changePercent);
+
+    // Get gainers (top 5 positive)
+    moversData.gainers = sortedByChange
+        .filter(q => q.changePercent > 0)
+        .slice(0, 5)
+        .map(q => createMoverEntry(q));
+
+    // Get losers (top 5 negative)
+    moversData.losers = sortedByChange
+        .filter(q => q.changePercent < 0)
+        .slice(-5)
+        .reverse()
+        .map(q => createMoverEntry(q));
+
+    // Active (use all stocks, sorted by absolute change)
+    moversData.active = [...quotes]
+        .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
+        .slice(0, 5)
+        .map(q => createMoverEntry(q));
+
+    // 52W High and Low (using current high/low as proxy)
+    moversData.high52 = [...quotes]
+        .sort((a, b) => b.high - a.high)
+        .slice(0, 5)
+        .map(q => createMoverEntry(q));
+
+    moversData.low52 = [...quotes]
+        .sort((a, b) => a.low - b.low)
+        .slice(0, 5)
+        .map(q => createMoverEntry(q));
+}
+
+// Create mover entry
+function createMoverEntry(quote) {
+    return {
+        symbol: quote.symbol,
+        name: quote.symbol, // Will be updated with company name if available
+        price: quote.price,
+        change: quote.changePercent,
+        volume: 'N/A', // Not available in free API
+        spark: generateSparkData(quote.price, quote.changePercent)
+    };
+}
+
+// Generate spark data based on price and change
+function generateSparkData(price, changePercent) {
+    const points = 6;
+    const data = [];
+    const startPrice = price / (1 + changePercent / 100);
+
+    for (let i = 0; i < points; i++) {
+        const progress = i / (points - 1);
+        const value = startPrice + (price - startPrice) * progress + (Math.random() - 0.5) * price * 0.01;
+        data.push(parseFloat(value.toFixed(2)));
+    }
+
+    return data;
+}
+
+// Load indices data (fallback as not available in free API)
+function loadIndicesData() {
+    indicesData = [
+        { name: 'S&P 500', value: 4615.32, change: 0.68, spark: [4580, 4590, 4585, 4600, 4610, 4615] },
+        { name: 'NASDAQ', value: 14350.65, change: 1.05, spark: [14200, 14250, 14280, 14300, 14330, 14350] },
+        { name: 'DOW', value: 35870.95, change: 0.42, spark: [35800, 35820, 35810, 35850, 35860, 35870] },
+        { name: 'Russell 2000', value: 1975.28, change: 1.29, spark: [1950, 1955, 1960, 1965, 1970, 1975] }
+    ];
+}
+
+// Load sectors data (fallback as not available in free API)
+function loadSectorsData() {
+    sectorsData = [
+        { name: 'Technology', change: 2.3, progress: 85 },
+        { name: 'Finance', change: -0.8, progress: 40 },
+        { name: 'Healthcare', change: 1.4, progress: 70 },
+        { name: 'Energy', change: -1.1, progress: 35 },
+        { name: 'Consumer', change: 0.5, progress: 55 },
+        { name: 'Industrials', change: 1.8, progress: 75 },
+        { name: 'Materials', change: -0.3, progress: 48 },
+        { name: 'Utilities', change: 0.2, progress: 52 }
+    ];
+}
+
+// Render all sections
+function renderAll() {
     renderHeatmap();
     renderIndices();
     renderSectorTimeline();
     renderMoversTable('gainers');
-    setupMoversTabs();
-});
+}
+
+// Load fallback data when API is unavailable
+function loadFallbackData() {
+    heatmapData = [
+        { symbol: 'AAPL', price: 178.42, change: 2.34, size: 'xl' },
+        { symbol: 'MSFT', price: 374.58, change: -0.89, size: 'xl' },
+        { symbol: 'GOOGL', price: 139.67, change: 1.45, size: 'lg' },
+        { symbol: 'AMZN', price: 151.94, change: 2.78, size: 'lg' },
+        { symbol: 'NVDA', price: 495.22, change: 3.12, size: 'lg' },
+        { symbol: 'TSLA', price: 242.84, change: 5.67, size: 'md' },
+        { symbol: 'META', price: 338.12, change: -1.23, size: 'md' },
+        { symbol: 'NFLX', price: 487.33, change: 4.21, size: 'md' },
+        { symbol: 'AMD', price: 118.67, change: 2.94, size: 'md' },
+        { symbol: 'INTC', price: 42.15, change: -3.45, size: 'md' },
+        { symbol: 'DIS', price: 91.23, change: -2.87, size: 'md' },
+        { symbol: 'JPM', price: 158.42, change: 0.87, size: 'md' }
+    ];
+
+    loadIndicesData();
+    loadSectorsData();
+
+    moversData = {
+        gainers: [
+            { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 495.22, change: 8.45, volume: '42.5M', spark: [460, 470, 475, 480, 490, 495] },
+            { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] },
+            { symbol: 'NFLX', name: 'Netflix, Inc.', price: 487.33, change: 4.21, volume: '3.5M', spark: [468, 472, 475, 480, 485, 487] },
+            { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
+            { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] }
+        ],
+        losers: [
+            { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] },
+            { symbol: 'DIS', name: 'The Walt Disney Company', price: 91.23, change: -2.87, volume: '8.9M', spark: [94, 93, 92, 92, 91, 91] },
+            { symbol: 'META', name: 'Meta Platforms, Inc.', price: 338.12, change: -1.23, volume: '18.3M', spark: [343, 342, 340, 339, 340, 338] },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', price: 374.58, change: -0.89, volume: '28.1M', spark: [378, 376, 377, 375, 376, 374] },
+            { symbol: 'BAC', name: 'Bank of America Corp.', price: 34.56, change: -0.45, volume: '42.1M', spark: [35, 34, 34, 35, 34, 34] }
+        ],
+        active: [
+            { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] },
+            { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
+            { symbol: 'AAPL', name: 'Apple Inc.', price: 178.42, change: 2.34, volume: '52.3M', spark: [174, 171, 175, 173, 176, 178] },
+            { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] },
+            { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] }
+        ],
+        high52: [
+            { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 495.22, change: 3.12, volume: '42.5M', spark: [480, 482, 485, 488, 492, 495] },
+            { symbol: 'NFLX', name: 'Netflix, Inc.', price: 487.33, change: 4.21, volume: '3.5M', spark: [468, 472, 475, 480, 485, 487] },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', price: 374.58, change: -0.89, volume: '28.1M', spark: [378, 376, 377, 375, 376, 374] },
+            { symbol: 'META', name: 'Meta Platforms, Inc.', price: 338.12, change: -1.23, volume: '18.3M', spark: [343, 342, 340, 339, 340, 338] },
+            { symbol: 'TSLA', name: 'Tesla, Inc.', price: 242.84, change: 5.67, volume: '125.8M', spark: [230, 232, 235, 238, 240, 243] }
+        ],
+        low52: [
+            { symbol: 'INTC', name: 'Intel Corporation', price: 42.15, change: -3.45, volume: '45.2M', spark: [44, 43, 43, 42, 42, 42] },
+            { symbol: 'DIS', name: 'The Walt Disney Company', price: 91.23, change: -2.87, volume: '8.9M', spark: [94, 93, 92, 92, 91, 91] },
+            { symbol: 'AMD', name: 'Advanced Micro Devices', price: 118.67, change: 2.94, volume: '52.8M', spark: [115, 116, 115, 117, 118, 119] },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 139.67, change: 1.45, volume: '31.2M', spark: [137, 138, 137, 139, 138, 140] },
+            { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 151.94, change: 2.78, volume: '48.7M', spark: [148, 147, 149, 150, 151, 152] }
+        ]
+    };
+}
 
 // Render Heatmap
 function renderHeatmap() {
