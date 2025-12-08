@@ -1,17 +1,14 @@
 // News Page JavaScript
 // Editorial layout with mock data
 
-// Mock Data
-const tickerTape = [
-    { symbol: 'AAPL', change: 2.34 },
-    { symbol: 'TSLA', change: 5.67 },
-    { symbol: 'MSFT', change: -0.89 },
-    { symbol: 'GOOGL', change: 1.45 },
-    { symbol: 'NVDA', change: 3.12 },
-    { symbol: 'META', change: -1.23 },
-    { symbol: 'AMZN', change: 2.78 },
-    { symbol: 'NFLX', change: 4.21 }
-];
+// Import configuration
+import { STOCK_SYMBOLS } from './config/index.js';
+
+// Mock Data - Ticker tape (using config symbols)
+const tickerTape = STOCK_SYMBOLS.ticker.map(symbol => ({
+    symbol,
+    change: parseFloat((Math.random() * 10 - 2).toFixed(2)) // Random change for demo (as number)
+}));
 
 const featuredArticle = {
     title: 'Tech Stocks Rally as AI Investments Surge Across Major Companies',
@@ -157,6 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Render Ticker Tape
 function renderTickerTape() {
     const container = document.getElementById('tickerContent');
+    if (!container) {
+        console.error('Ticker container not found');
+        return;
+    }
 
     // Duplicate items for seamless loop
     const items = [...tickerTape, ...tickerTape];
