@@ -1,9 +1,12 @@
 // Markets Dashboard JavaScript
 // Heatmap-first design with Canvas sparklines
 
-// Stock symbols for different sections
-const heatmapSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'JPM'];
-const moverSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'JPM', 'BAC', 'V', 'WMT', 'JNJ', 'PG', 'KO', 'PEP', 'COST'];
+// Import configuration
+import { STOCK_SYMBOLS, APP_CONFIG } from './config/index.js';
+
+// Use centralized stock symbols
+const heatmapSymbols = STOCK_SYMBOLS.heatmap.slice(0, 12);
+const moverSymbols = STOCK_SYMBOLS.movers;
 
 // Data storage (will be populated from API)
 let heatmapData = [];
@@ -22,11 +25,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadMarketData();
     setupMoversTabs();
 
-    // Auto-refresh every 5 minutes
+    // Auto-refresh using config interval
     setInterval(async () => {
         console.log('🔄 Auto-refreshing market data...');
         await loadMarketData();
-    }, 5 * 60 * 1000);
+    }, APP_CONFIG.refresh.markets);
 });
 
 // Load all market data

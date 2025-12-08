@@ -1,3 +1,6 @@
+// Import configuration
+import { STOCK_SYMBOLS, APP_CONFIG } from './config/index.js';
+
 // ===================================
 // SPARKLINE CHART RENDERING
 // ===================================
@@ -209,7 +212,7 @@ async function loadTrendingStocks() {
         return;
     }
 
-    const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX'];
+    const trendingSymbols = STOCK_SYMBOLS.trending;
 
     try {
         console.log('🔄 Loading trending stocks from Finnhub...');
@@ -266,7 +269,7 @@ async function loadWatchlistData() {
         return;
     }
 
-    const watchlistSymbols = ['AAPL', 'GOOGL', 'NVDA', 'TSLA', 'MSFT'];
+    const watchlistSymbols = STOCK_SYMBOLS.watchlist;
 
     try {
         console.log('🔄 Loading watchlist data...');
