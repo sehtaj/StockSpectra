@@ -275,6 +275,7 @@
     border-radius: 12px;
     object-fit: cover;
     background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
 }
 
 /* Article Mosaic */
