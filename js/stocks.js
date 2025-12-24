@@ -32,15 +32,13 @@ const stockSymbols = [
 // All stocks with real-time data (populated from API)
 let allStocks = [];
 
-// Pagination settings
-const ITEMS_PER_PAGE = 12;
-let currentPage = 1;
+// Filtered stocks based on search/filter
 let filteredStocks = [...allStocks];
 
 // DOM elements
 const searchInput = document.getElementById('searchInput');
 const sectorFilter = document.getElementById('sectorFilter');
-const stocksList = document.getElementById('stocksList');
+const stocksWheel = document.getElementById('stocksWheel');
 const noResults = document.getElementById('noResults');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
@@ -155,10 +153,10 @@ function loadFallbackData() {
 }
 
 function showLoadingState() {
-    const stocksList = document.getElementById('stocksList');
-    if (stocksList) {
-        stocksList.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+    const stocksWheel = document.getElementById('stocksWheel');
+    if (stocksWheel) {
+        stocksWheel.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
                 <div style="font-size: 18px; margin-bottom: 12px;">🔄 Loading real-time stock data...</div>
                 <div style="font-size: 14px; opacity: 0.7;">Fetching latest prices from Finnhub</div>
             </div>
@@ -170,8 +168,6 @@ function showLoadingState() {
 function setupEventListeners() {
     searchInput.addEventListener('input', handleSearch);
     sectorFilter.addEventListener('change', handleFilter);
-    prevBtn.addEventListener('click', () => changePage(-1));
-    nextBtn.addEventListener('click', () => changePage(1));
 }
 
 
@@ -187,7 +183,6 @@ function handleSearch() {
         return matchesSearch && matchesSector;
     });
 
-    currentPage = 1;
     renderStocks();
 }
 
@@ -198,93 +193,109 @@ function handleFilter() {
 
 // Render stocks
 function renderStocks() {
-    const totalPages = Math.ceil(filteredStocks.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const stocksToShow = filteredStocks.slice(startIndex, endIndex);
-
-    // Update pagination info
-    currentPageSpan.textContent = totalPages === 0 ? 0 : currentPage;
-    totalPagesSpan.textContent = totalPages;
-
-    // Update pagination buttons
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-
     // Show/hide no results
     if (filteredStocks.length === 0) {
-        stocksList.style.display = 'none';
+        stocksWheel.style.display = 'none';
         noResults.style.display = 'flex';
         return;
     } else {
-        stocksList.style.display = 'grid';
+        stocksWheel.style.display = 'flex';
         noResults.style.display = 'none';
     }
 
-    // Render stock cards
-    stocksList.innerHTML = '';
-    stocksToShow.forEach(stock => {
-        const card = createStockCard(stock);
-        stocksList.appendChild(card);
+    // Render all stock items in the wheel (no pagination)
+    stocksWheel.innerHTML = '';
+    filteredStocks.forEach((stock, index) => {
+        const item = createWheelItem(stock, index);
+        stocksWheel.appendChild(item);
     });
+
+    // Initialize wheel scroll behavior
+    initWheelScroll();
 }
 
-// Create stock card
-function createStockCard(stock) {
-    const card = document.createElement('a');
-    card.href = `stock-details.html?ticker=${stock.symbol}`;
-    card.className = 'stock-list-card';
+// Create wheel item
+function createWheelItem(stock, index) {
+    const item = document.createElement('a');
+    item.href = `stock-details.html?ticker=${stock.symbol}`;
+    item.className = 'wheel-item';
+    item.dataset.index = index;
 
     const changeClass = stock.change >= 0 ? 'positive' : 'negative';
     const changeSign = stock.change >= 0 ? '+' : '';
 
-    card.innerHTML = `
-        <div class="stock-info">
-            <div class="stock-symbol-main">${stock.symbol}</div>
-            <div class="stock-company-name">${stock.name}</div>
+    item.innerHTML = `
+        <div class="wheel-item-left">
+            <div class="wheel-symbol">${stock.symbol}</div>
+            <div class="wheel-company">${stock.name}</div>
         </div>
         
-        <div class="stock-price-main">$${stock.price.toFixed(2)}</div>
-        
-        <div class="stock-change-main ${changeClass}">
-            ${changeSign}${stock.change.toFixed(2)}%
+        <div class="wheel-item-right">
+            <div class="wheel-price">$${stock.price.toFixed(2)}</div>
+            <div class="wheel-change ${changeClass}">
+                ${changeSign}${stock.change.toFixed(2)}%
+            </div>
         </div>
-        
-        
-        <svg class="view-arrow" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" 
-                  stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
     `;
 
-    return card;
+    return item;
 }
 
-// Change page
-function changePage(direction) {
-    const totalPages = Math.ceil(filteredStocks.length / ITEMS_PER_PAGE);
-    const newPage = currentPage + direction;
+// Initialize wheel scroll behavior
+function initWheelScroll() {
+    const wheelContainer = document.getElementById('wheelContainer');
+    const wheelItems = document.querySelectorAll('.wheel-item');
 
-    if (newPage >= 1 && newPage <= totalPages) {
-        currentPage = newPage;
-        renderStocks();
+    if (!wheelContainer || wheelItems.length === 0) return;
 
-        // Smooth scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+    // Function to update active item based on scroll position
+    function updateActiveItem() {
+        const containerRect = wheelContainer.getBoundingClientRect();
+        const centerY = containerRect.top + containerRect.height / 2;
+
+        let closestItem = null;
+        let closestDistance = Infinity;
+
+        wheelItems.forEach(item => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenterY = itemRect.top + itemRect.height / 2;
+            const distance = Math.abs(centerY - itemCenterY);
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestItem = item;
+            }
         });
+
+        // Remove active class from all items
+        wheelItems.forEach(item => item.classList.remove('active'));
+
+        // Add active class to closest item
+        if (closestItem) {
+            closestItem.classList.add('active');
+        }
     }
+
+    // Update on scroll
+    wheelContainer.addEventListener('scroll', updateActiveItem);
+
+    // Initial update
+    updateActiveItem();
+
+    // Snap to center on scroll end
+    let scrollTimeout;
+    wheelContainer.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const activeItem = document.querySelector('.wheel-item.active');
+            if (activeItem) {
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 150);
+    });
 }
 
-// Keyboard navigation
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
-        changePage(-1);
-    } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
-        changePage(1);
-    }
-});
+
 
 // ============================================
 // AUTO-REFRESH REAL-TIME DATA
