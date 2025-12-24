@@ -88,10 +88,6 @@ Get a free API key from [Finnhub.io](https://finnhub.io/register):
 - **Accessibility** - Semantic HTML, keyboard navigation
 - **SEO optimized** - Proper meta tags and structure
 
-## 📸 Screenshots
-
-*Premium dark-mode interface with real-time data visualization*
-
 ## 🎓 Learning Outcomes
 
 This project demonstrates:
