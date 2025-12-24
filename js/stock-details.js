@@ -1,59 +1,25 @@
 // Stock Details Page JavaScript
-// Mock data for AAPL (Apple Inc.)
+// Dynamically loads stock data based on URL parameter
 
-const stockData = {
-    symbol: 'AAPL',
-    company: 'Apple Inc.',
-    price: 178.42,
-    change: 2.34,
-    changeAmount: 4.08,
-    metrics: {
-        'Market Cap': '$2.8T',
-        'P/E Ratio': '28.5',
-        'EPS': '$6.26',
-        'Volume': '52.3M',
-        '52W High': '$199.62',
-        '52W Low': '$124.17',
-        'Dividend Yield': '0.52%',
-        'Beta': '1.24'
-    },
-    fundamentals: {
-        'Revenue': '$394.3B',
-        'Net Income': '$97.0B',
-        'Profit Margin': '24.6%',
-        'Free Cash Flow': '$99.6B',
-        'ROE': '147.4%',
-        'ROA': '22.1%',
-        'Debt to Equity': '1.73',
-        'Current Ratio': '0.93'
-    },
-    overview: 'Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, Mac, iPad, and Wearables, Home and Accessories. It also provides AppleCare support services; cloud services; and operates various platforms, including the App Store, Apple Arcade, Apple Music, Apple TV+, and Apple Fitness+. Apple is one of the world\'s most valuable companies and a leader in consumer technology innovation.',
-    news: [
-        {
-            title: 'Apple Announces Record Q4 Earnings',
-            source: 'Financial Times',
-            time: '2 hours ago',
-            excerpt: 'Apple Inc. reported better-than-expected quarterly earnings, driven by strong iPhone sales and growing services revenue.'
-        },
-        {
-            title: 'New iPhone 16 Pre-Orders Exceed Expectations',
-            source: 'Bloomberg',
-            time: '5 hours ago',
-            excerpt: 'Pre-orders for the latest iPhone 16 lineup have surpassed analyst predictions, signaling continued strong demand.'
-        },
-        {
-            title: 'Apple Expands AI Features Across Product Line',
-            source: 'TechCrunch',
-            time: '1 day ago',
-            excerpt: 'The tech giant announced new AI-powered features coming to iOS, macOS, and other platforms in upcoming updates.'
-        },
-        {
-            title: 'Analysts Raise Price Target Following Strong Quarter',
-            source: 'CNBC',
-            time: '1 day ago',
-            excerpt: 'Several Wall Street analysts have increased their price targets for Apple stock following the company\'s impressive earnings report.'
-        }
-    ]
+// Get ticker from URL parameter
+function getTickerFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('ticker') || 'AAPL'; // Default to AAPL if no ticker specified
+}
+
+const currentTicker = getTickerFromURL();
+
+// Stock data object (will be populated from API)
+let stockData = {
+    symbol: currentTicker,
+    company: `${currentTicker} Inc.`,
+    price: 0,
+    change: 0,
+    changeAmount: 0,
+    metrics: {},
+    fundamentals: {},
+    overview: 'Loading company information...',
+    news: []
 };
 
 let performanceChart = null;
@@ -61,12 +27,144 @@ let headerSparklineChart = null;
 let currentRange = '1D';
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', () => {
-    loadStockData();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Update page title
+    document.title = `${currentTicker} | StockSpectra`;
+
+    // Show loading state
+    showLoadingState();
+
+    // Load real-time data
+    await loadRealTimeData();
+
+    // Initialize charts
     initializeCharts();
     setupTimeRangeTabs();
     styleTimeTabs();
 });
+
+// Show loading state
+function showLoadingState() {
+    document.getElementById('stockSymbol').textContent = currentTicker;
+    document.getElementById('companyName').textContent = 'Loading...';
+    document.getElementById('currentPrice').textContent = '$--';
+    document.getElementById('priceChange').textContent = '--';
+}
+
+// Load real-time data from API
+async function loadRealTimeData() {
+    if (typeof stockAPI === 'undefined') {
+        console.warn('⚠️ API not loaded, using fallback data');
+        loadFallbackData();
+        loadStockData();
+        return;
+    }
+
+    try {
+        console.log(`🔄 Loading real-time data for ${currentTicker}...`);
+
+        // Fetch quote and profile in parallel
+        const [quote, profile] = await Promise.all([
+            stockAPI.getStockQuote(currentTicker),
+            stockAPI.getCompanyProfile(currentTicker)
+        ]);
+
+        // Update stock data with real-time info
+        stockData.symbol = currentTicker;
+        stockData.company = profile.name || `${currentTicker} Inc.`;
+        stockData.price = quote.price || 0;
+        stockData.change = quote.changePercent || 0;
+        stockData.changeAmount = quote.change || 0;
+
+        // Populate metrics
+        stockData.metrics = {
+            'Market Cap': profile.marketCap ? `$${(profile.marketCap / 1000).toFixed(1)}B` : 'N/A',
+            'High': quote.high ? `$${quote.high.toFixed(2)}` : 'N/A',
+            'Low': quote.low ? `$${quote.low.toFixed(2)}` : 'N/A',
+            'Open': quote.open ? `$${quote.open.toFixed(2)}` : 'N/A',
+            'Prev Close': quote.previousClose ? `$${quote.previousClose.toFixed(2)}` : 'N/A',
+            'Exchange': profile.exchange || 'N/A',
+            'Industry': profile.industry || 'N/A',
+            'Country': profile.country || 'N/A'
+        };
+
+        // Set overview
+        stockData.overview = `${profile.name || currentTicker} is a company in the ${profile.industry || 'technology'} sector, listed on ${profile.exchange || 'stock exchange'}. ${profile.weburl ? `Visit their website at ${profile.weburl}` : ''}`;
+
+        // Try to fetch news
+        try {
+            const news = await stockAPI.getStockNews(currentTicker, 4);
+            if (news && news.length > 0) {
+                stockData.news = news.map(article => ({
+                    title: article.headline,
+                    source: article.source,
+                    time: formatNewsTime(article.datetime),
+                    excerpt: article.summary || 'No summary available.'
+                }));
+            }
+        } catch (error) {
+            console.warn('Could not fetch news:', error);
+            stockData.news = [];
+        }
+
+        // Load data into DOM
+        loadStockData();
+
+        console.log(`✅ Real-time data loaded for ${currentTicker}`);
+
+    } catch (error) {
+        console.error(`❌ Error loading data for ${currentTicker}:`, error);
+        loadFallbackData();
+        loadStockData();
+    }
+}
+
+// Format news timestamp
+function formatNewsTime(timestamp) {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+}
+
+// Load fallback data
+function loadFallbackData() {
+    const fallbackPrices = {
+        'AAPL': { price: 178.42, change: 2.34, company: 'Apple Inc.' },
+        'MSFT': { price: 374.58, change: -0.89, company: 'Microsoft Corporation' },
+        'GOOGL': { price: 139.67, change: 1.45, company: 'Alphabet Inc.' },
+        'AMZN': { price: 151.94, change: 2.78, company: 'Amazon.com, Inc.' },
+        'TSLA': { price: 242.84, change: 5.67, company: 'Tesla, Inc.' },
+        'META': { price: 338.12, change: -1.23, company: 'Meta Platforms, Inc.' },
+        'NVDA': { price: 495.22, change: 3.12, company: 'NVIDIA Corporation' },
+        'NFLX': { price: 487.33, change: 4.21, company: 'Netflix, Inc.' }
+    };
+
+    const fallback = fallbackPrices[currentTicker] || { price: 100, change: 0, company: `${currentTicker} Inc.` };
+
+    stockData.price = fallback.price;
+    stockData.change = fallback.change;
+    stockData.changeAmount = fallback.price * (fallback.change / 100);
+    stockData.company = fallback.company;
+    stockData.metrics = {
+        'Market Cap': 'N/A',
+        'High': `$${(fallback.price * 1.02).toFixed(2)}`,
+        'Low': `$${(fallback.price * 0.98).toFixed(2)}`,
+        'Open': `$${(fallback.price * 0.99).toFixed(2)}`,
+        'Prev Close': `$${(fallback.price - fallback.changeAmount).toFixed(2)}`,
+        'Exchange': 'NASDAQ',
+        'Industry': 'Technology',
+        'Country': 'USA'
+    };
+    stockData.overview = `${fallback.company} - Company information not available in offline mode.`;
+    stockData.news = [];
+}
 
 // Load stock data into DOM
 function loadStockData() {
@@ -95,38 +193,60 @@ function loadStockData() {
     // Fundamentals Table
     const fundamentalsTable = document.getElementById('fundamentalsTable');
     fundamentalsTable.innerHTML = '';
-    Object.entries(stockData.fundamentals).forEach(([key, value]) => {
+    if (Object.keys(stockData.fundamentals).length > 0) {
+        Object.entries(stockData.fundamentals).forEach(([key, value]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="symbol-cell">${key}</td>
+                <td>${value}</td>
+            `;
+            fundamentalsTable.appendChild(row);
+        });
+    } else {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="symbol-cell">${key}</td>
-            <td>${value}</td>
+            <td colspan="2" style="text-align: center; color: var(--text-secondary); padding: 24px;">
+                Fundamental data not available
+            </td>
         `;
         fundamentalsTable.appendChild(row);
-    });
+    }
 
     // Company Overview
+    const overviewTitle = document.getElementById('companyOverviewTitle');
+    if (overviewTitle) {
+        overviewTitle.textContent = `About ${stockData.company}`;
+    }
     document.getElementById('companyOverview').textContent = stockData.overview;
 
     // News
     const newsContainer = document.getElementById('newsContainer');
     newsContainer.innerHTML = '';
-    stockData.news.forEach(article => {
-        const newsCard = document.createElement('div');
-        newsCard.className = 'stock-card';
-        newsCard.style.cursor = 'pointer';
-        newsCard.innerHTML = `
-            <div style="margin-bottom: 8px;">
-                <div class="stock-symbol" style="font-size: 16px; margin-bottom: 4px;">${article.title}</div>
-                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
-                    <span class="stock-name" style="font-size: 12px;">${article.source}</span>
-                    <span class="stock-name" style="font-size: 12px;">•</span>
-                    <span class="stock-name" style="font-size: 12px;">${article.time}</span>
+    if (stockData.news.length > 0) {
+        stockData.news.forEach(article => {
+            const newsCard = document.createElement('div');
+            newsCard.className = 'stock-card';
+            newsCard.style.cursor = 'pointer';
+            newsCard.innerHTML = `
+                <div style="margin-bottom: 8px;">
+                    <div class="stock-symbol" style="font-size: 16px; margin-bottom: 4px;">${article.title}</div>
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+                        <span class="stock-name" style="font-size: 12px;">${article.source}</span>
+                        <span class="stock-name" style="font-size: 12px;">•</span>
+                        <span class="stock-name" style="font-size: 12px;">${article.time}</span>
+                    </div>
                 </div>
+                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;">${article.excerpt}</p>
+            `;
+            newsContainer.appendChild(newsCard);
+        });
+    } else {
+        newsContainer.innerHTML = `
+            <div style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                <p>No recent news available for ${stockData.symbol}</p>
             </div>
-            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;">${article.excerpt}</p>
         `;
-        newsContainer.appendChild(newsCard);
-    });
+    }
 }
 
 // Initialize charts

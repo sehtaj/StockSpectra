@@ -1,3 +1,6 @@
+// Import configuration
+import { STOCK_SYMBOLS, APP_CONFIG } from './config/index.js';
+
 // ===================================
 // SPARKLINE CHART RENDERING
 // ===================================
@@ -209,7 +212,7 @@ async function loadTrendingStocks() {
         return;
     }
 
-    const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX'];
+    const trendingSymbols = STOCK_SYMBOLS.trending;
 
     try {
         console.log('🔄 Loading trending stocks from Finnhub...');
@@ -219,7 +222,11 @@ async function loadTrendingStocks() {
         const stockCards = document.querySelectorAll('.trending-grid .stock-card');
         quotes.forEach((quote, index) => {
             if (index < stockCards.length) {
-                updateStockCard(stockCards[index], quote);
+                try {
+                    updateStockCard(stockCards[index], quote);
+                } catch (err) {
+                    console.error(`Error updating card for ${quote.symbol}:`, err);
+                }
             }
         });
 
@@ -266,7 +273,7 @@ async function loadWatchlistData() {
         return;
     }
 
-    const watchlistSymbols = ['AAPL', 'GOOGL', 'NVDA', 'TSLA', 'MSFT'];
+    const watchlistSymbols = STOCK_SYMBOLS.watchlist;
 
     try {
         console.log('🔄 Loading watchlist data...');
@@ -290,11 +297,11 @@ function updateStockCard(card, quote) {
     const priceEl = card.querySelector('.stock-price');
     const changeEl = card.querySelector('.stock-change');
 
-    if (priceEl) {
+    if (priceEl && quote.price !== undefined && quote.price !== null) {
         priceEl.textContent = `$${quote.price.toFixed(2)}`;
     }
 
-    if (changeEl) {
+    if (changeEl && quote.changePercent !== undefined && quote.changePercent !== null) {
         const sign = quote.change >= 0 ? '+' : '';
         changeEl.textContent = `${sign}${quote.changePercent.toFixed(2)}%`;
         changeEl.className = `stock-change ${quote.change >= 0 ? 'positive' : 'negative'}`;
@@ -304,19 +311,19 @@ function updateStockCard(card, quote) {
     const arrowIcon = card.querySelector('.arrow-up, .arrow-down');
     if (arrowIcon) {
         const isPositive = quote.change >= 0;
+        const newClass = isPositive ? 'arrow-up' : 'arrow-down';
 
-        // Update the class for styling (color)
-        arrowIcon.className = isPositive ? 'arrow-up' : 'arrow-down';
+        // Use setAttribute for SVG class to avoid read-only errors
+        arrowIcon.setAttribute('class', newClass);
 
-        // Update the SVG path to change arrow direction
-        const pathElement = arrowIcon.querySelector('path');
-        if (pathElement) {
-            // Arrow up path: M8 12V4M8 4L4 8M8 4L12 8
-            // Arrow down path: M8 4V12M8 12L12 8M8 12L4 8
-            const arrowPath = isPositive
-                ? 'M8 12V4M8 4L4 8M8 4L12 8'  // Up arrow
-                : 'M8 4V12M8 12L12 8M8 12L4 8'; // Down arrow
-            pathElement.setAttribute('d', arrowPath);
+        // Update arrow path to ensure correct direction
+        const path = arrowIcon.querySelector('path');
+        if (path) {
+            // Up arrow path vs Down arrow path
+            const d = isPositive
+                ? "M8 12V4M8 4L4 8M8 4L12 8"
+                : "M8 4V12M8 12L12 8M8 12L4 8";
+            path.setAttribute('d', d);
         }
     }
 }
