@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Real-Time Stock Analysis">
+    <meta name="description" content="Real-Time Stock Analysis">
     <title>StockSpectra - Real-Time Stock Analysis</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="css/styles.css">
@@ -32,7 +31,7 @@
                 <h1 class="hero-cinematic-title">Real-Time Stock Analysis <span
                         style="color: #23F39B; position: relative; display: inline-block; text-shadow: 0 0 15px rgba(35, 243, 155, 0.2);">Simplified<span
                             style="position: absolute; bottom: -4px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #23F39B, transparent); border-radius: 2px;"></span></span>
-            </h1>
+                </h1>
                 <p class="hero-cinematic-subtitle">Track prices, compare companies, and visualize data instantly.</p>
             </div>
 
@@ -485,12 +484,14 @@
     <!-- Footer Placeholder -->
     <div id="footer-placeholder"></div>
 
-    <!-- Component Loader (must load first) -->
-    <script src="js/components-loader.js"></script>
-
-    <!-- API Integration -->
+    <!-- API Integration (must load before module scripts) -->
     <script src="js/api-config.js"></script>
     <script src="js/api-service.js"></script>
+
+    <!-- Component Loader -->
+    <script src="js/components-loader.js"></script>
+
+    <!-- Main Script (module) -->
     <script src="js/script.js" type="module"></script>
 </body>
 

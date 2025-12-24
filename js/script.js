@@ -329,179 +329,6 @@ function updateStockCard(card, quote) {
 }
 
 // ===================================
-// TOP GAINERS & LOSERS DATA
-// ===================================
-async function loadTopGainersLosers() {
-    if (typeof stockAPI === 'undefined') {
-        console.warn('⚠️ API not loaded, using static data');
-        return;
-    }
-
-    // Define stocks to check for gainers/losers
-    const stockSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'INTC', 'DIS', 'BA', 'AMD', 'PYPL', 'CRM'];
-
-    try {
-        console.log('🔄 Loading top gainers and losers...');
-        const quotes = await stockAPI.getMultipleQuotes(stockSymbols);
-
-        // Sort by change percent
-        const sorted = quotes.sort((a, b) => b.changePercent - a.changePercent);
-
-        // Get top 5 gainers and losers
-        const gainers = sorted.slice(0, 5);
-        const losers = sorted.slice(-5).reverse();
-
-        // Update gainers table
-        const gainersRows = document.querySelectorAll('.table-container:first-child .data-table tbody tr');
-        gainers.forEach((quote, index) => {
-            if (index < gainersRows.length) {
-                updateTableRow(gainersRows[index], quote);
-            }
-        });
-
-        // Update losers table
-        const losersRows = document.querySelectorAll('.table-container:last-child .data-table tbody tr');
-        losers.forEach((quote, index) => {
-            if (index < losersRows.length) {
-                updateTableRow(losersRows[index], quote);
-            }
-        });
-
-        console.log('✅ Top gainers and losers loaded successfully');
-    } catch (error) {
-        console.error('❌ Error loading gainers/losers:', error);
-    }
-}
-
-function updateTableRow(row, quote) {
-    const symbolCell = row.querySelector('.symbol-cell');
-    const priceCell = row.querySelectorAll('td')[1];
-    const changePercentCell = row.querySelectorAll('td')[2];
-    const changePointsCell = row.querySelectorAll('td')[3];
-
-    if (symbolCell) {
-        symbolCell.textContent = quote.symbol;
-    }
-
-    if (priceCell) {
-        priceCell.textContent = `$${quote.price.toFixed(2)}`;
-    }
-
-    if (changePercentCell) {
-        const sign = quote.change >= 0 ? '+' : '';
-        changePercentCell.textContent = `${sign}${quote.changePercent.toFixed(2)}%`;
-        changePercentCell.className = quote.change >= 0 ? 'positive' : 'negative';
-    }
-
-    if (changePointsCell) {
-        const sign = quote.change >= 0 ? '+' : '';
-        changePointsCell.textContent = `${sign}${quote.change.toFixed(2)}`;
-        changePointsCell.className = quote.change >= 0 ? 'positive' : 'negative';
-    }
-}
-
-// ===================================
-// MARKET OVERVIEW DATA
-// ===================================
-async function loadMarketOverview() {
-    if (typeof stockAPI === 'undefined') {
-        console.warn('⚠️ API not loaded, using static data');
-        return;
-    }
-
-    // Market indices - using ETFs as proxies since Finnhub free tier supports them
-    const indices = [
-        { symbol: 'SPY', name: 'S&P 500' },      // S&P 500 ETF
-        { symbol: 'QQQ', name: 'NASDAQ' },       // NASDAQ ETF
-        { symbol: 'DIA', name: 'DOW' },          // DOW ETF
-        { symbol: 'IWM', name: 'Russell 2000' }  // Russell 2000 ETF
-    ];
-
-    try {
-        console.log('🔄 Loading market overview...');
-
-        for (let i = 0; i < indices.length; i++) {
-            const quote = await stockAPI.getStockQuote(indices[i].symbol);
-            const marketItems = document.querySelectorAll('.market-item');
-
-            if (marketItems[i] && quote) {
-                updateMarketItem(marketItems[i], quote, indices[i].name);
-            }
-        }
-
-        console.log('✅ Market overview loaded successfully');
-    } catch (error) {
-        console.error('❌ Error loading market overview:', error);
-    }
-}
-
-function updateMarketItem(item, quote, displayName) {
-    const nameEl = item.querySelector('.market-name');
-    const priceEl = item.querySelector('.market-price');
-    const changeEl = item.querySelector('.market-change');
-
-    if (nameEl) {
-        nameEl.textContent = displayName;
-    }
-
-    if (priceEl) {
-        priceEl.textContent = quote.price.toFixed(2);
-    }
-
-    if (changeEl) {
-        const sign = quote.change >= 0 ? '+' : '';
-        changeEl.textContent = `${sign}${quote.changePercent.toFixed(2)}%`;
-        changeEl.className = `market-change ${quote.change >= 0 ? 'positive' : 'negative'}`;
-    }
-
-    // Update sparkline data attribute with simulated historical trend
-    const canvas = item.querySelector('.sparkline');
-    if (canvas) {
-        // Generate trend data based on current price
-        const basePrice = quote.price;
-        const trendData = [];
-        for (let i = 0; i < 8; i++) {
-            const variation = (Math.random() - 0.5) * (basePrice * 0.02);
-            trendData.push((basePrice + variation).toFixed(2));
-        }
-        canvas.dataset.values = trendData.join(',');
-        drawSparkline(canvas);
-    }
-}
-
-// ===================================
-// FIX STATIC ARROWS ON PAGE LOAD
-// ===================================
-function fixStaticArrows() {
-    // Fix arrows in trending stocks section
-    const stockCards = document.querySelectorAll('.trending-grid .stock-card');
-    stockCards.forEach(card => {
-        const changeEl = card.querySelector('.stock-change');
-        const arrowIcon = card.querySelector('.arrow-up, .arrow-down');
-
-        if (changeEl && arrowIcon) {
-            const changeText = changeEl.textContent.trim();
-            // Check if the change starts with "+" or "-"
-            const isPositive = changeText.startsWith('+');
-
-            // Update the arrow class
-            arrowIcon.className = isPositive ? 'arrow-up' : 'arrow-down';
-
-            // Update the SVG path to match the direction
-            const pathElement = arrowIcon.querySelector('path');
-            if (pathElement) {
-                const arrowPath = isPositive
-                    ? 'M8 12V4M8 4L4 8M8 4L12 8'  // Up arrow
-                    : 'M8 4V12M8 12L12 8M8 12L4 8'; // Down arrow
-                pathElement.setAttribute('d', arrowPath);
-            }
-        }
-    });
-
-    console.log('✅ Static arrows fixed based on percentage change data');
-}
-
-// ===================================
 // INITIALIZE ALL FUNCTIONALITY
 // ===================================
 function init() {
@@ -513,15 +340,10 @@ function init() {
     initTableRows();
     initSmoothScroll();
 
-    // Fix static arrows based on existing data
-    fixStaticArrows();
-
     // Load real-time data from Finnhub
     loadTrendingStocks();
     loadHeroStockData();
     loadWatchlistData();
-    loadTopGainersLosers();
-    loadMarketOverview();
 
     // Add resize listener for sparklines
     window.addEventListener('resize', handleResize);
@@ -531,8 +353,6 @@ function init() {
         loadTrendingStocks();
         loadHeroStockData();
         loadWatchlistData();
-        loadTopGainersLosers();
-        loadMarketOverview();
     }, 5 * 60 * 1000);
 }
 
